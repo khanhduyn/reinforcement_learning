@@ -13,6 +13,7 @@
 
 
 import mdp, util
+import random
 
 from learningAgents import ValueEstimationAgent
 
@@ -46,11 +47,31 @@ class ValueIterationAgent(ValueEstimationAgent):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
 
+        # Loop from start to end
+        states = self.mdp.getStates()
+        print('all states: ', states)
+        final_states = states[0]
+
+        action = self.mdp.getPossibleActions(final_states)
+        reward = self.mdp.getReward(final_states, action, None)
+        print('action: ', action)
+        print('reward: ', reward)
+
+        for state in states:
+            actions = self.mdp.getPossibleActions(state)
+            print('state: ' , state)
+            for action in actions:
+                print('     action: ', action)
+                print('     next state: ', self.mdp.getTransitionStatesAndProbs(state, action))
+
+
+
 
     def getValue(self, state):
         """
           Return the value of the state (computed in __init__).
         """
+        print('DkS values: ' + str(self.values[state]))
         return self.values[state]
 
 
@@ -60,7 +81,8 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return 0.0
+
 
     def computeActionFromValues(self, state):
         """
@@ -72,7 +94,12 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        possible_actions = self.mdp.getPossibleActions(state)
+        if len(possible_actions) <= 0:
+            return None
+        action = random.choice(possible_actions)
+        print('action: ' + action)
+        return action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
