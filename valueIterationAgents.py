@@ -50,20 +50,32 @@ class ValueIterationAgent(ValueEstimationAgent):
         # Loop from start to end
         states = self.mdp.getStates()
         print('all states: ', states)
-        final_states = states[0]
-
-        action = self.mdp.getPossibleActions(final_states)
-        reward = self.mdp.getReward(final_states, action, None)
-        print('action: ', action)
-        print('reward: ', reward)
-
-        for state in states:
-            actions = self.mdp.getPossibleActions(state)
-            print('state: ' , state)
-            for action in actions:
-                print('     action: ', action)
-                print('     next state: ', self.mdp.getTransitionStatesAndProbs(state, action))
-
+        for i in range(0, self.iterations):
+            print('Iteration: ', i)
+            values = self.values.copy()
+            for state in states:
+                actions = self.mdp.getPossibleActions(state)
+                max_total_rewards = float('-inf')
+                print('state: ' , state)
+                for action in actions:
+                    next_states = self.mdp.getTransitionStatesAndProbs(state, action)
+                    # print('     action: ', action)
+                    # total_rewards = 0
+                    # for next_state in next_states:
+                    #     reward = self.mdp.getReward(state, action, next_state[0])
+                    #     print('         n_state: ', next_state)
+                    #     print('         reward: ', reward)
+                    #     if self.mdp.isTerminal(next_state[0]):
+                    #         total_rewards +=  next_state[1] * reward
+                    #     else:
+                    #         total_rewards +=  next_state[1] * (reward + self.discount * self.values[next_state[0]])
+                    #     print('         total_reward: ', total_rewards)
+                    total_rewards = self.computeQValueFromValues(state, action)
+                    if max_total_rewards < total_rewards:
+                        max_total_rewards = total_rewards
+                values[state] = max_total_rewards
+            self.values.update(values)
+        print(self.values)
 
 
 
@@ -81,7 +93,16 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        return 0.0
+        next_states = self.mdp.getTransitionStatesAndProbs(state, action)
+        total_reward = 0
+        print('state: ', state, ' action: ', action)
+        for next_state in next_states:
+            reward = self.mdp.getReward(state, action, next_state)
+            if self.mdp.isTerminal(next_state[0]):
+                total_reward += next_state[1] * reward
+            else:
+                total_reward += next_state[1] * (reward + self.discount * self.getValue(next_state[0]))
+        return total_reward
 
 
     def computeActionFromValues(self, state):
@@ -97,9 +118,24 @@ class ValueIterationAgent(ValueEstimationAgent):
         possible_actions = self.mdp.getPossibleActions(state)
         if len(possible_actions) <= 0:
             return None
-        action = random.choice(possible_actions)
-        print('action: ' + action)
-        return action
+        
+        max_q_value = float('-inf')
+        selected_action = None
+
+        print('available action: ', possible_actions)
+
+        for action in possible_actions:
+            q_value = self.getQValue(state, action)
+            print('action: ', action)
+            print('     q_value: ', q_value)
+            print('     max_q_value: ', max_q_value)
+            if max_q_value < q_value:
+                max_q_value = q_value
+                selected_action = action
+                print('assign max_q_value')
+        # action = random.choice(possible_actions)
+        print('action: ' + selected_action)
+        return selected_action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
